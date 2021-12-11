@@ -32,3 +32,18 @@ def find_in_data(data: Sequence[Sequence[int]], condition : Callable[[int], bool
                 result.append((x, y))
 
     return result
+
+
+def find_neighbours(location: Tuple[int, int], width: int, height: int) -> list[Tuple[int, int]]:
+    result = []
+    for y in range(location[1] - 1, location[1] + 1 + 1):
+        if y < 0 or y >= height:
+            continue
+        for x in range(location[0] - 1, location[0] + 1 + 1):
+            if x < 0 or x >= width:
+                continue
+            if (x, y) == location:
+                continue
+            result.append((x, y))
+
+    return result

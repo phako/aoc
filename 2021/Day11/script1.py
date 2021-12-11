@@ -3,28 +3,11 @@
 import helper
 import sys
 
-from typing import Tuple
-
 
 def increase(data: list[list[int]]) -> None:
     for line in data:
         for x in range(len(line)):
             line[x] += 1
-
-
-def find_neighbours(location: Tuple[int, int], width: int, height: int) -> list[Tuple[int, int]]:
-    result = []
-    for y in range(location[1] - 1, location[1] + 1 + 1):
-        if y < 0 or y >= height:
-            continue
-        for x in range(location[0] - 1, location[0] + 1 + 1):
-            if x < 0 or x >= width:
-                continue
-            if (x, y) == location:
-                continue
-            result.append((x, y))
-
-    return result
 
 
 # this will dump the steps to PGM files, which can be viewed or converted into a video with GStreamer:
@@ -51,7 +34,7 @@ if __name__ == '__main__':
         while len(flashing) > 0:
             current = flashing.pop(0)
             visited.append(current)
-            to_visit = find_neighbours(current, width, height)
+            to_visit = helper.find_neighbours(current, width, height)
             for x, y in to_visit:
                 data[y][x] += 1
                 if data[y][x] > 9:
