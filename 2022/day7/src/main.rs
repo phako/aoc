@@ -1,5 +1,5 @@
 use core::panic;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
@@ -7,7 +7,6 @@ use std::path::Path;
 #[derive(Debug)]
 struct Dir {
     size:u64,
-    children: HashMap<String, Dir>,
     name:String,
 }
 
@@ -15,7 +14,6 @@ impl Dir {
     fn new(name_: String) -> Self{
         Dir {
             size: 0,
-            children: HashMap::new(),
             name : name_,
         }
     }
@@ -27,7 +25,7 @@ fn main() {
 
     // Consumes the iterator, returns an (Optional) String
     let mut stack:Vec<Dir> = Vec::new();
-    let mut all_folders:Vec<Dir> = Vec::new();
+    let mut all_folders = BTreeMap::new();
     let mut sum:u64 = 0;
     for line in lines {
         if let Ok(ip) = line {
@@ -49,18 +47,16 @@ fn main() {
                                     stack.last_mut().unwrap().size += foo.size;
 
                                     // Part two: Collecting the folders here for later processing
-                                    all_folders.push(foo);
+                                    all_folders.insert(foo.size, foo);
                                 } else {
                                     stack.push(Dir::new(name.to_string()));
-                                    //println!("going into {} {:?}", name, stack);
                                 }
                             },
                             _ => { panic!("Invalid input");}
                         }
                     },
                     "dir" => {
-                        let Some(name) = info.next() else { panic!("Wrong input")};
-                        //stack.last_mut().unwrap().children.insert(name.to_string(), Dir::new(name.to_string()));
+                        // Can be safely ignored
                     },
                     _ => {
                         let Ok(value) = first.parse::<u64>() else { panic!{"Wrong input"}};
@@ -83,20 +79,19 @@ fn main() {
         if !stack.is_empty() {
             stack.last_mut().unwrap().size += foo.size;
         }
-        all_folders.push(foo);
+        all_folders.insert(foo.size, foo);
     }
 
     // Part two: Collect the minimal size we need to free
-    let total_size = all_folders.last().unwrap().size;
+    let total_size = all_folders.iter().last().unwrap().0;
     let space_left = 70000000 - total_size;
     let minimum_required = 30000000 - space_left;
     println!("Total Size: {}, Space left: {}, need an additional {}", total_size, space_left,  minimum_required);
 
 
     // Use that for find the smallest one that exceeds that size here 
-    all_folders.sort_by(|a, b| a.size.cmp(&b.size));
-    let Some(dir) = all_folders.iter().find(|dir| dir.size > minimum_required) else {panic!("No space left to free")};
-    println!("{:?}", dir);
+    let Some(dir) = all_folders.iter().min_by_key(|k| if k.0 < &minimum_required { u64::MAX} else { k.0 - minimum_required}) else {panic!("No space left to free")}; 
+    println!("Smallest to clear: {}, size: {}", dir.1.name, dir.1.size);
 
     println!("Puzzle output: {}", sum);
 }
